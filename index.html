@@ -3,46 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>แบบฟอร์มรับข้อร้องเรียน | คณะวิทยาศาสตร์</title>
+<title>ตรวจสอบสถานะเรื่องร้องเรียน | คณะวิทยาศาสตร์</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root { --primary:#8b1e3f; --bg:#f4f5f8; --border:#d5d8e0; }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); font-family:'Sarabun',sans-serif; color:#222; line-height:1.6; }
-  .wrap { max-width:760px; margin:0 auto; padding:24px 16px 60px; }
+  .wrap { max-width:620px; margin:0 auto; padding:24px 16px 60px; }
   h1 { color:var(--primary); margin:0 0 4px; }
   .sub { color:#666; margin:0 0 20px; }
   .card { background:#fff; border-radius:12px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,.06); margin-bottom:16px; }
-  .card h2 { margin-top:0; font-size:1.15rem; border-left:4px solid var(--primary); padding-left:10px; }
-  label { display:block; font-weight:600; margin:14px 0 4px; }
-  .req::after { content:" *"; color:#d00; }
-  input[type=text], input[type=email], input[type=tel], select, textarea {
-    width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font:inherit; background:#fff; }
-  textarea { min-height:130px; resize:vertical; }
-  input:focus, select:focus, textarea:focus { outline:2px solid #c9a0ae; border-color:var(--primary); }
-  button { font:inherit; font-weight:600; border:0; border-radius:8px; padding:11px 22px; cursor:pointer;
-    background:var(--primary); color:#fff; }
+  .row { display:flex; gap:8px; }
+  input { flex:1; min-width:0; padding:11px 12px; border:1px solid var(--border); border-radius:8px; font:inherit; }
+  input:focus { outline:2px solid #c9a0ae; border-color:var(--primary); }
+  button { font:inherit; font-weight:600; border:0; border-radius:8px; padding:11px 20px;
+    background:var(--primary); color:#fff; cursor:pointer; }
   button:disabled { background:#bbb; cursor:not-allowed; }
-  button.secondary { background:#eee; color:#333; padding:4px 10px; font-weight:400; }
-  .btn-link { display:inline-block; background:var(--primary); color:#fff; text-decoration:none;
-    font-weight:600; border-radius:8px; padding:11px 22px; }
-  .radio { display:flex; align-items:center; gap:8px; font-weight:600; margin:16px 0; cursor:pointer; }
-  .radio input { width:20px; height:20px; }
-  .pdpa { background:#fbf3f5; border:1px solid #ecd0d8; padding:14px; border-radius:8px; }
+  .error { color:#c00; margin-top:10px; }
   .hint { font-size:.9rem; color:#666; }
   .hidden { display:none !important; }
-  .files { list-style:none; padding:0; margin:8px 0 0; }
-  .files li { display:flex; justify-content:space-between; align-items:center; gap:8px;
-    background:#f7f7f9; border:1px solid var(--border); border-radius:8px; padding:6px 10px; margin-top:6px; word-break:break-all; }
-  .error { color:#c00; margin-top:10px; white-space:pre-wrap; }
-  .warn { background:#fff7e0; border:1px solid #f0d58a; padding:10px; border-radius:8px; margin-top:12px; }
-  .success-icon { width:64px; height:64px; border-radius:50%; background:#2e9d5b; color:#fff;
-    font-size:38px; line-height:64px; text-align:center; margin:0 auto 12px; }
   .center { text-align:center; }
-  .tracking { font-size:2.2rem; font-weight:700; color:var(--primary); letter-spacing:1px; }
-  .trackbox { background:#fbf3f5; border:1px dashed var(--primary); border-radius:10px; padding:14px; margin:14px 0; }
-  .hp { position:absolute; left:-9999px; }
-  progress { width:100%; }
+  .tid { font-size:1.8rem; font-weight:700; color:var(--primary); letter-spacing:1px; }
+  .badge { display:inline-block; padding:8px 22px; border-radius:99px; font-weight:600; color:#fff; font-size:1.15rem; margin:8px 0 16px; }
+  .steps { list-style:none; padding:0; margin:8px 0 0; text-align:left; }
+  .steps li { display:flex; align-items:center; gap:12px; padding:8px 0; color:#999; }
+  .dot { width:22px; height:22px; border-radius:50%; border:2px solid #ccc; background:#fff;
+    display:inline-block; flex:none; text-align:center; line-height:18px; font-size:13px; color:#fff; }
+  .steps li.done { color:#2e9d5b; }
+  .steps li.done .dot { background:#2e9d5b; border-color:#2e9d5b; }
+  .steps li.current { color:#222; font-weight:600; }
+  .steps li.current .dot { border-color:var(--primary); background:var(--primary); }
   .ver { text-align:center; color:#aaa; font-size:.75rem; margin-top:24px; }
   #js-error { position:fixed; left:0; right:0; bottom:0; background:#b00020; color:#fff; padding:10px 16px;
     font-size:.9rem; z-index:9999; white-space:pre-wrap; }
@@ -50,115 +40,32 @@
 </head>
 <body>
 <main class="wrap">
-  <h1>แบบฟอร์มรับข้อร้องเรียน</h1>
+  <h1>ตรวจสอบสถานะเรื่องร้องเรียน</h1>
   <p class="sub">คณะวิทยาศาสตร์</p>
 
-  <!-- STEP 1: PDPA -->
-  <section id="step-consent" class="card">
-    <h2>การคุ้มครองข้อมูลส่วนบุคคล (PDPA)</h2>
-    <div class="pdpa">
-      ข้อมูลส่วนบุคคลที่ท่านให้ไว้ในแบบฟอร์มนี้จะถูกใช้เพื่อการติดต่อกลับและดำเนินการเกี่ยวกับเรื่องร้องเรียนเท่านั้น
-      ทางคณะฯ จะไม่เปิดเผยข้อมูลของท่านต่อบุคคลภายนอกโดยไม่ได้รับอนุญาต
-      และจะเก็บรักษาข้อมูลไว้ โดยยึดถือปฏิบัติตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 อย่างเคร่งครัด
-    </div>
-    <label class="radio"><input type="radio" name="consent" id="consent-radio" value="ack"> รับทราบ</label>
-    <button id="btn-consent" type="button" disabled>ยืนยันและดำเนินการต่อ</button>
-  </section>
+  <div class="card">
+    <form id="f" class="row">
+      <input id="id" placeholder="กรอกรหัสติดตาม เช่น 2026-001" maxlength="12" autocomplete="off" required>
+      <button id="btn" type="submit">ค้นหา</button>
+    </form>
+    <div id="err" class="error"></div>
+  </div>
 
-  <!-- STEP 2: FORM -->
-  <form id="complaint-form" class="hidden" novalidate>
-    <div class="card">
-      <h2>ข้อมูลผู้ร้องเรียน</h2>
+  <div id="result" class="card center hidden">
+    <div class="hint">รหัสติดตาม</div>
+    <div class="tid" id="r-id"></div>
+    <div><span id="r-status" class="badge"></span></div>
+    <ul id="r-steps" class="steps"></ul>
+    <p class="hint" style="margin-top:18px">
+      หากต้องการสอบถามเพิ่มเติม กรุณาติดต่อ
+      <a href="mailto:sci_appeal@g.swu.ac.th">sci_appeal@g.swu.ac.th</a> พร้อมระบุรหัสติดตาม
+    </p>
+  </div>
 
-      <label class="req" for="name">ชื่อ-นามสกุล</label>
-      <input type="text" id="name" maxlength="150" required autocomplete="name">
-
-      <label class="req" for="email">อีเมล</label>
-      <input type="email" id="email" maxlength="150" required autocomplete="email">
-
-      <label class="req" for="phone">เบอร์โทรศัพท์</label>
-      <input type="tel" id="phone" maxlength="20" pattern="[0-9+\-\s]{9,20}" required autocomplete="tel"
-             title="กรอกตัวเลข 9-20 หลัก (เว้นวรรค, - และ + ได้)">
-      <div class="hint">ใช้สำหรับติดต่อกลับเพื่อแจ้งผลหรือขอข้อมูลเพิ่มเติม</div>
-
-      <label class="req" for="role">สถานภาพ</label>
-      <select id="role" required>
-        <option value="">-- เลือก --</option>
-        <option>นิสิตคณะวิทยาศาสตร์</option>
-        <option>บุคลากรคณะวิทยาศาสตร์ (สายวิชาการ)</option>
-        <option>บุคลากรคณะวิทยาศาสตร์ (สายปฏิบัติการ)</option>
-        <option>บุคคลภายนอก/ผู้มาติดต่อ/อื่น ๆ</option>
-      </select>
-    </div>
-
-    <div class="card">
-      <h2>รายละเอียดเรื่องร้องเรียน</h2>
-
-      <label class="req" for="category">ประเภทเรื่องที่ร้องเรียน</label>
-      <select id="category" required>
-        <option value="">-- เลือก --</option>
-        <option>ด้านการเรียนการสอน</option>
-        <option>ด้านการวิจัย</option>
-        <option>ด้านบริการวิชาการ</option>
-        <option>ด้านการบริหารองค์กร</option>
-      </select>
-
-      <label class="req" for="subject">หัวข้อเรื่องร้องเรียน</label>
-      <input type="text" id="subject" maxlength="200" required>
-
-      <label class="req" for="detail">รายละเอียดเรื่องที่ร้องเรียน</label>
-      <textarea id="detail" maxlength="5000" required></textarea>
-    </div>
-
-    <div class="card">
-      <h2>แนบเอกสาร/รูปภาพประกอบ (ไม่บังคับ)</h2>
-      <input type="file" id="file-input"
-             accept=".jpg,.jpeg,.png,.gif,.webp,.heic,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip">
-      <div class="hint">แนบได้ 1 ไฟล์ ขนาดไม่เกิน 10MB<br>
-        หากมีไฟล์มากกว่านี้ หรือต้องการส่งข้อมูลเพิ่มเติม กรุณาส่งอีเมลมาที่
-        <a href="mailto:sci_appeal@g.swu.ac.th">sci_appeal@g.swu.ac.th</a></div>
-      <ul class="files" id="file-list"></ul>
-      <div class="error" id="file-error"></div>
-    </div>
-
-    <div class="card">
-      <h2>ข้อมูลอื่น ๆ เพิ่มเติม</h2>
-      <textarea id="extra" maxlength="3000" placeholder="(ถ้ามี)"></textarea>
-      <!-- honeypot กันบอท: คนจริงมองไม่เห็นและไม่กรอก -->
-      <input type="text" id="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <p><button type="submit" id="btn-submit">ส่งเรื่องร้องเรียน</button></p>
-      <progress id="progress" class="hidden"></progress>
-      <div id="progress-text" class="hint"></div>
-      <div class="error" id="form-error"></div>
-    </div>
-  </form>
-
-  <!-- RESULT: หน้ายืนยันหลังส่งสำเร็จ -->
-  <section id="result" class="card hidden center">
-    <div class="success-icon">✓</div>
-    <h2 style="border:0;padding:0;font-size:1.4rem">ได้รับเรื่องร้องเรียนของท่านเรียบร้อยแล้ว</h2>
-    <p>ขอบคุณที่แจ้งเรื่องร้องเรียนมายังคณะวิทยาศาสตร์ เจ้าหน้าที่จะตรวจสอบและติดต่อกลับตามข้อมูลที่ท่านให้ไว้</p>
-
-    <div class="trackbox">
-      <div class="hint">รหัสติดตามเรื่องของท่าน</div>
-      <div class="tracking" id="tracking-id"></div>
-      <button type="button" class="secondary" id="btn-copy">คัดลอกรหัส</button>
-    </div>
-
-    <p>ระบบได้ส่งอีเมลยืนยันพร้อมรหัสติดตามไปที่ <b id="result-email"></b> แล้ว<br>
-       <span class="hint">(หากไม่พบ กรุณาตรวจสอบในกล่องจดหมายขยะ)</span></p>
-
-    <p><a id="status-link" class="btn-link" href="status.html">ตรวจสอบสถานะเรื่องร้องเรียน</a></p>
-    <p class="hint">กรุณาเก็บรหัสนี้ไว้เพื่อใช้ติดตามสถานะ</p>
-
-    <div id="upload-warning" class="warn hidden" style="text-align:left"></div>
-  </section>
-
-  <div class="ver">index v3.4</div>
+  <div class="ver">status v1</div>
 </main>
 
 <script>
-/*** แสดง error ของสคริปต์บนหน้าเว็บ (ไว้ตรวจปัญหา) ***/
 window.addEventListener('error', function (e) {
   var box = document.getElementById('js-error');
   if (!box) {
@@ -169,177 +76,78 @@ window.addEventListener('error', function (e) {
   box.textContent = 'สคริปต์ผิดพลาด: ' + e.message + ' (บรรทัด ' + e.lineno + ')';
 });
 
-/*** ตั้งค่า ***/
 const API_URL = 'https://script.google.com/macros/s/AKfycbw2eGGzzFbiZnag-dEu10jPHGeN93ZVG3PwGEhGkFyd-Wvhu-LD1C-YSa_3k88ccGs/exec';
-const CONTACT_EMAIL = 'sci_appeal@g.swu.ac.th';
-const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED_EXT = ['jpg','jpeg','png','gif','webp','heic','pdf','doc','docx','xls','xlsx','ppt','pptx','txt','zip'];
-
 const $ = id => document.getElementById(id);
-const fileInput = $('file-input');
-let consentAt = null, startedAt = null;
-let busy = false;
 
-// ดึงไฟล์แรกจากช่องเลือกไฟล์ โดยไม่ใช้วงเล็บเหลี่ยม (ไม่มีไฟล์ = null)
-function getFile() {
-  return Array.from(fileInput.files).shift() || null;
-}
+const STEPS = ['รับเรื่องแล้ว', 'อยู่ระหว่างการพิจารณา', 'ขอข้อมูลเพิ่มเติม', 'เสร็จสิ้นแล้ว'];
+const COLORS = {
+  'รับเรื่องแล้ว': '#607d8b',
+  'อยู่ระหว่างการพิจารณา': '#f39c12',
+  'ขอข้อมูลเพิ่มเติม': '#e67e22',
+  'เสร็จสิ้นแล้ว': '#2e9d5b'
+};
 
-/*** STEP 1: PDPA ***/
-$('consent-radio').addEventListener('change', e => { $('btn-consent').disabled = !e.target.checked; });
-$('btn-consent').addEventListener('click', () => {
-  if (!$('consent-radio').checked) return;
-  consentAt = startedAt = new Date().toISOString();
-  $('step-consent').classList.add('hidden');
-  $('complaint-form').classList.remove('hidden');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-});
-
-/*** ไฟล์แนบ (1 ไฟล์) ***/
-fileInput.addEventListener('change', async () => {
-  $('file-error').textContent = '';
-  const f = getFile();
-  if (!f) { renderFile(); return; }
-
-  const ext = f.name.split('.').pop().toLowerCase();
-  let err = '';
-  if (!ALLOWED_EXT.includes(ext)) err = f.name + ': ไม่รองรับไฟล์ชนิดนี้';
-  else if (f.size === 0) err = f.name + ': ไฟล์ว่างเปล่า';
-  else if (f.size > MAX_BYTES) err = f.name + ': ขนาดเกิน 10MB กรุณาส่งไฟล์มาทางอีเมล ' + CONTACT_EMAIL;
-  else {
-    try { await f.slice(0, 1024).arrayBuffer(); }
-    catch (e) { err = f.name + ': เบราว์เซอร์อ่านไฟล์นี้ไม่ได้ (ถ้าไฟล์อยู่บนคลาวด์ ให้ดาวน์โหลดลงเครื่องก่อน)'; }
-  }
-  if (err) { fileInput.value = ''; $('file-error').textContent = err; }
-  renderFile();
-});
-
-function renderFile() {
-  const ul = $('file-list');
+function renderSteps(status) {
+  const ul = $('r-steps');
   ul.innerHTML = '';
-  const f = getFile();
-  if (!f) return;
-  const li = document.createElement('li');
-  const span = document.createElement('span');
-  span.textContent = 'ไฟล์ที่เลือก: ' + f.name + ' (' + (f.size / 1048576).toFixed(2) + ' MB)';
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'secondary';
-  btn.textContent = 'ลบ';
-  btn.onclick = () => { fileInput.value = ''; renderFile(); };
-  li.append(span, btn);
-  ul.appendChild(li);
+  const cur = STEPS.indexOf(status);
+  STEPS.forEach((name, i) => {
+    const li = document.createElement('li');
+    if (cur >= 0 && i < cur) li.className = 'done';
+    if (i === cur) li.className = 'current';
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    if (cur >= 0 && i < cur) dot.textContent = '✓';
+    const label = document.createElement('span');
+    label.textContent = name;
+    li.append(dot, label);
+    ul.appendChild(li);
+  });
 }
 
-// อ่านไฟล์เป็น base64 ล้วน (ตัดส่วนหัว data:...;base64, ออกด้วย pop)
-const toBase64 = file => new Promise((resolve, reject) => {
-  const r = new FileReader();
-  r.onload = () => resolve(String(r.result).split(',').pop());
-  r.onerror = () => reject(r.error);
-  r.readAsDataURL(file);
-});
+async function search(raw) {
+  const id = String(raw || '').trim();
+  $('err').textContent = '';
+  $('result').classList.add('hidden');
 
-/*** ส่งข้อมูล ***/
-async function post(payload) {
-  let res;
-  try {
-    res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    });
-  } catch (e) {
-    throw new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ (' + (e.message || e) + ')');
+  if (!/^\d{4}-\d{3,}$/.test(id)) {
+    $('err').textContent = 'รูปแบบรหัสไม่ถูกต้อง (ตัวอย่าง 2026-001)';
+    return;
   }
-  const text = await res.text();
+
+  $('btn').disabled = true;
+  $('btn').textContent = 'กำลังค้นหา...';
   try {
-    return JSON.parse(text);
-  } catch (e) {
-    throw new Error('เซิร์ฟเวอร์ตอบกลับผิดรูปแบบ (HTTP ' + res.status + '): ' + text.slice(0, 150));
-  }
-}
+    const res = await fetch(API_URL + '?action=status&id=' + encodeURIComponent(id));
+    const text = await res.text();
+    let d;
+    try { d = JSON.parse(text); }
+    catch (e) { throw new Error('เซิร์ฟเวอร์ตอบกลับผิดรูปแบบ กรุณาลองใหม่อีกครั้ง'); }
+    if (!d.ok) throw new Error(d.error || 'ค้นหาไม่สำเร็จ');
 
-function setBusy(b, text) {
-  busy = b;
-  $('btn-submit').disabled = b;
-  $('progress').classList.toggle('hidden', !b);
-  $('progress-text').textContent = text || '';
-}
-
-window.addEventListener('beforeunload', e => {
-  if (busy) { e.preventDefault(); e.returnValue = ''; }
-});
-
-$('complaint-form').addEventListener('submit', async ev => {
-  ev.preventDefault();
-  if (busy) return;
-  $('form-error').textContent = '';
-  if (!ev.target.reportValidity()) return;
-
-  const file = getFile();
-
-  const payload = {
-    action: 'submit',
-    consent: true, consentAt: consentAt, startedAt: startedAt,
-    name: $('name').value, email: $('email').value, phone: $('phone').value,
-    role: $('role').value, category: $('category').value,
-    subject: $('subject').value, detail: $('detail').value, extra: $('extra').value,
-    website: $('website').value,
-    fileCount: file ? 1 : 0
-  };
-
-  try {
-    setBusy(true, 'กำลังส่งข้อมูล กรุณาอย่าปิดหน้านี้...');
-    const res = await post(payload);
-    if (!res.ok) throw new Error(res.error || 'ส่งข้อมูลไม่สำเร็จ');
-
-    let uploadFailed = '';
-    if (file) {
-      setBusy(true, 'กำลังอัปโหลดไฟล์ ' + file.name + ' (ไฟล์ใหญ่อาจใช้เวลาสักครู่)...');
-      try {
-        const r = await post({
-          action: 'upload', trackingId: res.trackingId, uploadToken: res.uploadToken,
-          fileName: file.name, mimeType: file.type, data: await toBase64(file)
-        });
-        if (!r.ok) uploadFailed = (r.error || 'ผิดพลาด') + (r.detail ? ' - ' + r.detail : '');
-      } catch (e) {
-        uploadFailed = e.message || String(e);
-      }
-    }
-
-    $('tracking-id').textContent = res.trackingId;
-    $('result-email').textContent = $('email').value.trim();
-    $('status-link').href = 'status.html?id=' + encodeURIComponent(res.trackingId);
-
-    if (file && !uploadFailed) {
-      const ok = document.createElement('p');
-      ok.className = 'hint';
-      ok.textContent = 'แนบไฟล์เรียบร้อย: ' + file.name;
-      $('tracking-id').closest('.trackbox').after(ok);
-    }
-    if (uploadFailed) {
-      $('upload-warning').classList.remove('hidden');
-      $('upload-warning').textContent = 'เรื่องร้องเรียนของท่านบันทึกเรียบร้อยแล้ว แต่ไฟล์แนบอัปโหลดไม่สำเร็จ (' + uploadFailed +
-        ') กรุณาส่งไฟล์มาที่ ' + CONTACT_EMAIL + ' พร้อมระบุรหัสติดตาม ' + res.trackingId;
-    }
-    $('complaint-form').classList.add('hidden');
+    $('r-id').textContent = d.trackingId;
+    $('r-status').textContent = d.status;
+    $('r-status').style.background = COLORS[d.status] || '#607d8b';
+    renderSteps(d.status);
     $('result').classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  } catch (err) {
-    $('form-error').textContent = err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+  } catch (e) {
+    $('err').textContent = e.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่';
   } finally {
-    setBusy(false, '');
+    $('btn').disabled = false;
+    $('btn').textContent = 'ค้นหา';
   }
+}
+
+$('f').addEventListener('submit', e => {
+  e.preventDefault();
+  search($('id').value);
 });
 
-$('btn-copy').addEventListener('click', async () => {
-  try {
-    await navigator.clipboard.writeText($('tracking-id').textContent);
-    $('btn-copy').textContent = 'คัดลอกแล้ว ✓';
-  } catch (e) {
-    $('btn-copy').textContent = 'คัดลอกไม่ได้ กรุณาจดรหัส';
-  }
-});
+const q = new URLSearchParams(location.search).get('id');
+if (q) {
+  $('id').value = q;
+  search(q);
+}
 </script>
 </body>
 </html>
