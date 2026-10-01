@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ตรวจสอบสถานะเรื่องร้องเรียน | คณะวิทยาศาสตร์</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --primary:#8b1e3f; --bg:#f4f5f8; --border:#d5d8e0; --green:#2e9d5b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); font-family:'Sarabun',sans-serif; color:#222; line-height:1.6; }
+  .wrap { max-width:620px; margin:0 auto; padding:24px 16px 60px; }
+  h1 { color:var(--primary); margin:0 0 4px; }
+  .sub { color:#666; margin:0 0 20px; }
+  .card { background:#fff; border-radius:12px; padding:24px; box-shadow:0 2px 8px rgba(0,0,0,.06); margin-bottom:16px; }
+  .row { display:flex; gap:8px; }
+  input { flex:1; min-width:0; padding:11px 12px; border:1px solid var(--border); border-radius:8px; font:inherit; }
+  input:focus { outline:2px solid #c9a0ae; border-color:var(--primary); }
+  button { font:inherit; font-weight:600; border:0; border-radius:8px; padding:11px 20px;
+    background:var(--primary); color:#fff; cursor:pointer; }
+  button:disabled { background:#bbb; cursor:not-allowed; }
+  .error { color:#c00; margin-top:10px; }
+  .hint { font-size:.9rem; color:#666; }
+  .hidden { display:none !important; }
+  .center { text-align:center; }
+  .tid { font-size:1.8rem; font-weight:700; color:var(--primary); letter-spacing:1px; }
+  .badge { display:inline-block; padding:8px 22px; border-radius:99px; font-weight:600; color:#fff; font-size:1.15rem; margin:8px 0 12px; }
+  .times { background:#f7f7f9; border:1px solid var(--border); border-radius:10px; padding:10px 14px;
+    margin:0 0 12px; text-align:left; }
+  .times div { display:flex; justify-content:space-between; gap:12px; padding:2px 0; }
+  .times .k { color:#666; }
+  .times .v { font-weight:600; text-align:right; }
+  .steps { list-style:none; padding:0; margin:8px 0 0; text-align:left; }
+  .steps li { display:flex; align-items:center; gap:12px; padding:8px 0; color:#999; }
+  .dot { width:22px; height:22px; border-radius:50%; border:2px solid #ccc; background:#fff;
+    display:inline-block; flex:none; text-align:center; line-height:18px; font-size:13px; color:#fff; }
+  .steps li.done { color:var(--green); }
+  .steps li.done .dot { background:var(--green); border-color:var(--green); }
+  .steps li.current { color:#222; font-weight:600; }
+  .steps li.current .dot { border-color:var(--primary); background:var(--primary); }
+  .ver { text-align:center; color:#aaa; font-size:.75rem; margin-top:24px; }
+  #js-error { position:fixed; left:0; right:0; bottom:0; background:#b00020; color:#fff; padding:10px 16px;
+    font-size:.9rem; z-index:9999; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>ตรวจสอบสถานะเรื่องร้องเรียน</h1>
+  <p class="sub">คณะวิทยาศาสตร์</p>
+
+  <div class="card">
+    <form id="f" class="row">
+      <input id="id" placeholder="กรอกรหัสติดตาม เช่น 2026-001" maxlength="12" autocomplete="off" required>
+      <button id="btn" type="submit">ค้นหา</button>
+    </form>
+    <div id="err" class="error"></div>
+  </div>
+
+  <div id="result" class="card center hidden">
+    <div class="hint">รหัสติดตาม</div>
+    <div class="tid" id="r-id"></div>
+    <div><span id="r-status" class="badge"></span></div>
+
+    <div class="times">
+      <div><span class="k">รับเรื่องเมื่อ</span><span class="v" id="r-submitted">-</span></div>
+      <div id="row-completed" class="hidden"><span class="k">เสร็จสิ้นเมื่อ</span><span class="v" id="r-completed">-</span></div>
+    </div>
+
+    <ul id="r-steps" class="steps"></ul>
+    <p class="hint" style="margin-top:18px">
+      หากต้องการสอบถามเพิ่มเติม กรุณาติดต่อ
+      <a href="mailto:sci_appeal@g.swu.ac.th">sci_appeal@g.swu.ac.th</a> พร้อมระบุรหัสติดตาม
+    </p>
+  </div>
+
+  <div class="ver">status v2</div>
+</main>
+
+<script>
+window.addEventListener('error', function (e) {
+  var box = document.getElementById('js-error');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'js-error';
+    document.body.appendChild(box);
+  }
+  box.textContent = 'สคริปต์ผิดพลาด: ' + e.message + ' (บรรทัด ' + e.lineno + ')';
+});
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbw2eGGzzFbiZnag-dEu10jPHGeN93ZVG3PwGEhGkFyd-Wvhu-LD1C-YSa_3k88ccGs/exec';
+const $ = id => document.getElementById(id);
+
+const FINAL_STATUS = 'เสร็จสิ้นแล้ว';
+const STEPS = ['รับเรื่องแล้ว', 'อยู่ระหว่างการพิจารณา', 'ขอข้อมูลเพิ่มเติม', FINAL_STATUS];
+const COLORS = {
+  'รับเรื่องแล้ว': '#607d8b',
+  'อยู่ระหว่างการพิจารณา': '#f39c12',
+  'ขอข้อมูลเพิ่มเติม': '#e67e22',
+  'เสร็จสิ้นแล้ว': '#2e9d5b'
+};
+
+// แสดงวันเวลาแบบไทย (ปี พ.ศ.) ตามเขตเวลากรุงเทพฯ
+function fmt(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  if (isNaN(d)) return '-';
+  return d.toLocaleString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'medium', timeStyle: 'short' }) + ' น.';
+}
+
+function renderSteps(status) {
+  const ul = $('r-steps');
+  ul.innerHTML = '';
+  const isFinal = status === FINAL_STATUS;
+  const cur = STEPS.indexOf(status);
+  STEPS.forEach((name, i) => {
+    const li = document.createElement('li');
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+
+    // ถ้าเสร็จสิ้นแล้ว ให้ทุกขั้น (รวมขั้นสุดท้าย) เป็นติ๊กถูกสีเขียว
+    const done = isFinal || (cur >= 0 && i < cur);
+    if (done) {
+      li.className = 'done';
+      dot.textContent = '✓';
+    } else if (i === cur) {
+      li.className = 'current';
+    }
+
+    const label = document.createElement('span');
+    label.textContent = name;
+    li.append(dot, label);
+    ul.appendChild(li);
+  });
+}
+
+async function search(raw) {
+  const id = String(raw || '').trim();
+  $('err').textContent = '';
+  $('result').classList.add('hidden');
+
+  if (!/^\d{4}-\d{3,}$/.test(id)) {
+    $('err').textContent = 'รูปแบบรหัสไม่ถูกต้อง (ตัวอย่าง 2026-001)';
+    return;
+  }
+
+  $('btn').disabled = true;
+  $('btn').textContent = 'กำลังค้นหา...';
+  try {
+    const res = await fetch(API_URL + '?action=status&id=' + encodeURIComponent(id));
+    const text = await res.text();
+    let d;
+    try { d = JSON.parse(text); }
+    catch (e) { throw new Error('เซิร์ฟเวอร์ตอบกลับผิดรูปแบบ กรุณาลองใหม่อีกครั้ง'); }
+    if (!d.ok) throw new Error(d.error || 'ค้นหาไม่สำเร็จ');
+
+    $('r-id').textContent = d.trackingId;
+    $('r-status').textContent = d.status;
+    $('r-status').style.background = COLORS[d.status] || '#607d8b';
+    $('r-submitted').textContent = fmt(d.submittedAt);
+
+    const isFinal = d.status === FINAL_STATUS;
+    $('row-completed').classList.toggle('hidden', !isFinal);
+    $('r-completed').textContent = isFinal ? fmt(d.completedAt) : '-';
+
+    renderSteps(d.status);
+    $('result').classList.remove('hidden');
+  } catch (e) {
+    $('err').textContent = e.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+  } finally {
+    $('btn').disabled = false;
+    $('btn').textContent = 'ค้นหา';
+  }
+}
+
+$('f').addEventListener('submit', e => {
+  e.preventDefault();
+  search($('id').value);
+});
+
+const q = new URLSearchParams(location.search).get('id');
+if (q) {
+  $('id').value = q;
+  search(q);
+}
+</script>
+</body>
+</html>
