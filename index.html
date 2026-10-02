@@ -133,6 +133,8 @@
     <div class="card">
       <h2>รายละเอียดเรื่องร้องเรียน</h2>
 
+   <!--  ##### ไม่ใช้ประเภทแล้ว ####
+      
       <label class="req" for="category">ประเภทเรื่องที่ร้องเรียน</label>
       <select id="category" required>
         <option value="">-- เลือก --</option>
@@ -141,7 +143,7 @@
         <option>ด้านบริการวิชาการ</option>
         <option>ด้านการบริหารองค์กร</option>
       </select>
-
+    -->
       <label class="req" for="subject">หัวข้อเรื่องร้องเรียน</label>
       <input type="text" id="subject" maxlength="200" required>
 
@@ -198,7 +200,7 @@
     <div id="upload-warning" class="warn hidden" style="text-align:left"></div>
   </section>
 
-  <div class="ver">index v3.5</div>
+  <div class="ver">index v3.6</div>
 </main>
 
 <script>
@@ -332,7 +334,8 @@ $('complaint-form').addEventListener('submit', async ev => {
     action: 'submit',
     consent: true, consentAt: consentAt, startedAt: startedAt,
     name: $('name').value, email: $('email').value, phone: $('phone').value,
-    role: $('role').value, category: $('category').value,
+    role: $('role').value, 
+    // category: $('category').value, <-- ไม่ใช้ประเภทแล้ว
     subject: $('subject').value, detail: $('detail').value, extra: $('extra').value,
     website: $('website').value,
     fileCount: file ? 1 : 0
